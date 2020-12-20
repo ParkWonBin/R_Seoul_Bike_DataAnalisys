@@ -331,7 +331,7 @@ with(Brok_vbike,
 
 
 
-### 2.2.2 수리 후 잔고장
+### 2.1.3 수리 후 잔고장
 고장 빈도수를 기준으로 자전거ID의 순서를 정렬한 그래프다.  
 이 그래프는 자전거가 얼마나 균형있게(?) 고장나는지를 보여준다.  
 따릉이 사업이 확대됨에 따라 자전거의 개체수가 단기간에 급증한 떄가 많았는데,  
@@ -355,9 +355,10 @@ mtext('자주 수리 받은 자전거가 잘 고장날까',side=3,col='black',li
 }
 ```
 
-#### 2.3 고장나기 좋은 계절
+### 2.2 고장나기 좋은 계절
 
-따릉이 자전거 사용량(일일 대여건수)와 고장신고 건수는 명확히 일치하는 계절성을 보인다.  
+따릉이 자전거 사용량(일일 대여건수)와 고장신고 건수는 명확히 일치하는 계절성을 보인다. 
+
 
 ```{r}
 {plot(Bike_vc,col=alpha('#00dd00',0.2), pch = 20,cex=1.5,
@@ -377,5 +378,54 @@ mtext('고장건수',side=4,col='#dd6633', line = -1.2,cex=1.2)
 title("자전거 사용량과 고장 건수", cex.main=2)
 }
 ```
+#### 2.3.1. 계절성 시각화 및 회귀
+변수 간의 선형-상관성을 시각적으로 확인하기 위해 x,y축을 각각 고장건수와 대여건수로 나타냈다.  
+아래 그림을 살펴보면, 고장건수와 대여 건수 사이의 선형계수가 계절에 따라 움직이는 것을 볼 수 있다.  
+3월의 경우 대여건수에 비해 고장 건수가 높고, 6월~9월 사이 기간에는 대여건수 대비 고장건수가 적다.  
+
+```{r}
+{par(bg='black')
+with(m1,
+     plot(rental,broken,pch = 20,cex=1.5,,xlab="",ylab="",
+     col=rainbow(12,alpha = 0.7)[month(date)]
+     )
+)
+axis(side=1,col='#00cc00',col.axis='#00cc00')
+axis(side=2,col='#dd6633',col.axis="#dd6633")
+mtext('대여건수',side=1,col='#00cc00', line = 2.5,cex=2)
+mtext('고장건수',side=2,col='#dd6633', line = 2.5,cex=2)
+legend('bottomright', legend=paste0(1:12,'월'), pch=20, text.col='white',cex=0.9,
+       col=rainbow(12), bg="black")
+}
+```
+```{r}
+{par(mfcol=c(2,2))
+par(bg='black')
+for (i in 1:4){
+with(m1,
+     plot(rental,broken,pch = 20,cex=1.5,,xlab="",ylab="",
+          col= ifelse(3*i-1)<=month(date) & month(date)<=3*i,rainbow(12)[month(date)],NA),))
+axis(side=2,col='#dd6633',col.axis="#dd6633")
+axis(side=1,col='#00cc00',col.axis='#00cc00')}
+}
+```
+1,2,3,4 분기에 대해서 각각 따로 선형근사를 한 결과는 다음과 같다.   
+lm.coff는 사용량 증가에 따른 고장건수의 비율을 나타낸다.  
+
+### 고장건수 = lm.coff*대여건수 + Intercept + error
+```{r}
+{a=summary(with(m1[month(m1$date) %in% c(1,2,3),],lm(broken~rental)))
+b=summary(with(m1[month(m1$date) %in% c(4,5,6),],lm(broken~rental)))
+c=summary(with(m1[month(m1$date) %in% c(7,8,9),],lm(broken~rental)))
+d=summary(with(m1[month(m1$date) %in% c(10,11,12),],lm(broken~rental)))
+data.frame(season = c('1~3월','4~6월','7~9월','10~12월'),
+           lm.coff = c(a$coefficients[2],b$coefficients[2],c$coefficients[2],d$coefficients[2]),
+           p.lmcoff = c(a$coefficients[8],b$coefficients[8],c$coefficients[8],d$coefficients[8]),
+           Intercept = c(a$coefficients[1],b$coefficients[1],c$coefficients[1],d$coefficients[1]),
+           p.intercept = c(a$coefficients[7],b$coefficients[7],c$coefficients[7],d$coefficients[7])
+                   )
+}
+```
 
 
+### 사용양과 고장
