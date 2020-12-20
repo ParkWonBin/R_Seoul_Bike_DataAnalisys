@@ -53,11 +53,15 @@ BR = data.frame(bike = as.numeric(gsub('SPB-',"",Broken$자전거번호)),
 write.csv(BR, file='Bike-Broken.csv.csv', row.names = FALSE)
 ```
 
-### 1.2 자전거 데이터
+### 1.2 자전거 데이터 
+
+##### 1.2.1. R 로 전저리
 자전거 번호 : SPB- 번호  
 등록일시 : 2015-9-18(=0) 기준  
-그외항목 : start(출발-대여소ID), end(반납-대여소ID), time(이동시간-분),  dist(이동거리-미터)
 
+이 R 코드 대로 하면 2017년 4월 이전 자료까지만 읽힌다.   
+그 이후 자료는 인코딩, 열 이름, 결측값 등 변칙적인 문제가 있어
+python pandas를 사용하여 이후 작업을 진행했다.
 
 ```r
 # 폴더 내 파일 이름 검색
@@ -67,7 +71,10 @@ f = list.files(path=p, pattern = '.csv')
 # 모든 파일 불러와서 병합
 x = read.csv(paste0(p,f[1])) 
 for (i in 2:length(f)){
-  x = rbind(x,read.csv(paste0(p,f[i])))
+  y = read.csv(paste0(p,f[i]))
+  names(y) = names(x)
+  x = rbind(x,y)
+  print(f[i]) # 작업 완료된 파일 이름 출력
 }
 
 # 필요한 열만 저장
@@ -81,11 +88,199 @@ Bike = data.frame(bike = as.numeric(gsub('SPB-',"",bike$자전거번호)),
                 dist = bike$이용거리.M.)
 ```
 
+##### 1.2.2. python 으로 전처리
+총 52개의 파일에 중복되지 않은 서로다른 에러가 여러 종류로 있었다.
+그래서 파일 하나씩 저장하는 식으로 에러를 피하고, 다시 병합하는 과정에서 공통된 작업을 했다.
+
+아래 전처리 끝내고 시계열 작업 중 날짜 데이터에 오류가 있음을 알게됐다.  
+원인은 원본 데이터의 글자 깨짐이었다. utf-8로 인코딩 되어있지만 중간중간 인코딩이 깨져있었다.
+인코딩이 깨져 중간중간열이 밀려쓰기 되거나 병합된 체로 읽히고 저장되는 문제가 있었다.
+2015.9~2019.12까지는 나타나지 않은 문제인데, 2020.1월 이후에만 나타나 해당 부분만 작업했다.
+
+```python 
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from dateutil.parser import parse
+from datetime import datetime, timedelta
+
+def set_num(txt):
+    try: return int(str(txt).strip("'").lstrip("SPB-"))
+    except : return 0
+ws = "2015~2020_자전거 코드별 이용정보/"
+directory = os.listdir(ws)
+
+# 디렉토리 내 파일 확인 (총 52개)
+for i in range(len(directory)):
+    print(i,':',directory[i]) 
+
+# 전처리 작업 시작
+for i in range(46):
+    x = pd.read_csv(ws+directory[i],encoding='CP949')
+    x = x.iloc[:,[0,5,2,6,9,10]]
+    x.columns = x.columns = ['bike','date','start','end','time','dist']
+    x['bike']=x['bike'].map(set_num)
+    x['date']=x['date'].astype('datetime64[D]').map(lambda x : (x-datetime(2015, 9, 18)).days)
+
+    x.to_csv(f"use/_Bike-Use{i}.csv", index=False)
+```
+#### 1.2.3. 날짜 데이터 오류 수정
+ 1. 필터링 1 :  
+대여/받납 대여소 명에서 인코딩이 깨지면 마지막 행에 결측값이 생기는 패턴이 있었다.  
+마지막 열의 결측값을 기준으로 열이 병합되는 문제를 1차로 필터링했다.  
+
+ 2. 필터링 2 :   
+데이터가 밀려쓰기/병합 되면 date에 대여소 코드/임의의 문자열이 들어와 1900년대 날짜가 반환된다.
+위에서 걸리지지 않은 결측값은 2015.9~2020.12 사이 날짜인지 확인하는 것으로 거를 수 있다.
+
+ 3. 데이터 보정 :  
+에러 값의 개수는 파일당 20~30열 내외이고 문제의 파일은 총 5개 이므로 보정 작업은 수작업으로 했다.
+필터링 1을 한 덕분에 밀려쓰기/병합 된 행이 구분되어 비교적 간단한 수작업으로 데이터를 보정할 수 있었다.
+
+```python
+def set_df2(n) :     
+    x = pd.read_csv(ws+directory[n],encoding='CP949')
+    nan = x.iloc[:,10].isnull()
+    
+    error = x[nan]
+    y = x[~nan]
+        
+    y = y.iloc[:,[0,5,2,6,9,10]]
+    y.columns = ['bike','date','start','end','time','dist']
+    y['bike']=y['bike'].map(set_num)
+    y['date']=y['date'].map(lambda x : (parse(x[:10])-datetime(2015, 9, 18)).days)
+    
+    is_date = [0 < date and date < 1920 for date in y['date']]
+    if sum([not x for x in is_date]) != 0: 
+        print(n)
+        return y[is_date],  pd.concat([error, y[~is_date]])
+    
+    return y, error
+    
+# 정상 데이터와 에러값을 따로 저장한다.
+for i in range(46,len(directory)):
+    x,error = set_df2(i)
+    
+    x.to_csv(f"use/_Bike-Use{i}.csv", index=False)
+    error.to_csv(f"use/_Bike-Use-error{i}.csv", index=False)
+```
+
+
+#### 1.2.4. 정상적인 데이터 병합
+데이터를 저장할 떄, 문자열, 정수열, 결측(na)값 등이 섞여 있다.  
+내 목표는 데이터를 모두 정수값을 가진 csv로 저장하여 dataset의 용량을 줄이는 것이다.  
+pandas에서 int열은 nan값을 가질 수 없어, nan이 등장하면 자동으로 열을 float로 변환한다.   
+결측값을 제거하고 모든 열을 int로 형변환 후 저장하려고 한다.  
+
+```python
+# 대여소 아이디에 정수형이 아닌 데이터 처리
+def set_Int(name):
+    tp = type(name)
+    if tp == int : return name
+    elif tp == str :
+        name = name.strip("'")
+        try :
+            name = int(name)
+            return name
+        except : 
+            k = 0
+            if name == '중랑센터' : k = 3
+            elif name == '중랑정비팀test 1005' : k = 3
+            elif name == '상암센터 정비실' :k = 5
+            elif name == '위트콤공장' : k = 1
+            elif name == '위트콤' :k = 1
+            else : pass
+            print(k, end="")
+            return k
+    elif np.isnan(name) : return name
+    elif tp == float :  return int(name)
+    else: print(type(name)); return name
+    
+ws = "use/"
+directory = os.listdir(ws)
+#########################################################
+# 저장한 파일 모두  불러오기
+cols = ['bike', 'date', 'start', 'end', 'time', 'dist']
+x = pd.DataFrame(columns = cols)
+for i in range(len(directory)): 
+    y = pd.read_csv(ws+directory[i],encoding='utf-8')
+    # 2015.9.18 ~ 2020.12.20 날짜인지 검사
+    is_date = 0 < min(y['date']) and max(y['date']) < 1920 
+    if not is_date :
+        print('#[date error]# :',directory[i])
+    else : print(i,end=" ")
+    x = pd.concat([x,y]) 
+display(x)
+
+#########################################################
+# 데이터가 모두 정수형으로 들어왔는지 확인
+result = x
+for col in cols :
+    print(col, sum([type(x) != int for x in result[col]]))
+    
+# 전체 행 : 44418544
+# bike 0
+# date 3145725
+# start 13377238
+# end 13377238
+# time 10403754
+# dist 31131628
+##########################################################
+```
+
+
+```python
+result = result.dropna() # nan 붙어있는 데이터 삭제
+result['date'] = result['date'].map(set_Int)
+result['start'] = result['start'].map(set_Int)
+result['end'] = result['end'].map(set_Int)
+result['time'] = result['time'].map(set_Int)
+result['dist'] = result['dist'].map(set_Int)
+
+# 로그 값을 보고 추적한 데이터. 
+# 데이터에 nan 값이 있으면 folat 타입으로 변환된다. 
+# bike : 0  
+# date : 3145725  (floa)  
+# start : 13377238 (와트콤 384, 중량 836, 상암 374)  
+# end  : 13377238 (와트콤 384, 중량 864, 상암 522)  
+# time : 10403754 (str)  
+# dist : 31131628 (str, flot)  
+# 로그 추적은 jupyer 파일 참고.
+```
+
+#### 1.2.4. 에러 복원한 데이터와 병합
+```python 
+fixed = pd.read_csv('./_Bike-Use-errors-fixed.csv',encoding='CP949') 
+
+# 데이터 손으로 복원한 데이터 초기설정
+y = fixed
+y.columns = ['bike','date','start','end','time','dist']
+y['bike']=y['bike'].map(set_num)
+y['date']=y['date'].map(lambda x : (parse(x[:10])-datetime(2015, 9, 18)).days)
+fixed = y
+
+# 정상 데이터와 병합
+result = pd.concat([result,y])
+result = result.sort_values(by='date')
+result.to_csv(f"Bike-Use-final.csv", index=False)
+
+
+################
+# 사용량 그래프 복기
+a = result.date.value_counts()
+b = pd.DataFrame({'date' : a.index, 'count' : a.values})
+display(b.plot.scatter(x='date', y='count'))
+```
+
+
 ### 1.3 전처리 결과
 #### 자전거 고장 : 파일 1개 (6MB) -> 1개(3.9MB)
-#### 자전거 사용 : 파일 52개(5.2GB) -> 1개(56.8MB)
+#### 자전거 사용 : 파일 52개(5.2GB) -> 52개(1.23GB) -> ZIP(358.5MB)
 #### 파일 설명 : 
-- 자전거 고장 : bike(자전거ID),date(접수일 2015.9.18일 +day), type(사유)
+- 자전거 고장 : bike(자전거ID),date(접수일 2015.9.18일 +day), type(사유)  
+(1)체인, (2)기타, (3)단말기, (4)안장, (5)페달, (6)타이어, (7)파손, (8)잠금장치 불량
+
 - 자전거 사용 : bike(자전거ID),date(반납일 2015.9.18일 +day),   
                 start(출발-대여소ID), end(반납-대여소ID), time(이동시간-분),  dist(이동거리-미터)
 
