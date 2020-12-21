@@ -64,12 +64,13 @@ data.frame(t(summary(Broken$type)))
 ```
 ![](\README_img\1.png)
 ![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/1.png)
-<img width="700" src="https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/1.png">
+
 
 ```r
 plot(Broken$type)
 ```
 ![](\README_img\2.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/2.png)
 
 ### 2.2. 고장나기 좋은 계절
 자전거 사용은 계절성을 나타낸다. 자전거는 너무 춥거나 더우면 부담스럽기 때문이다. 자전거 사용의 계절성과 자전거 고장의 계절성에 대해서 시각화 하려고한다. 직관적으로 사람들이 자전거를 많이 사용하는 때 고장 신고도 많이 발생한다는 것을 생각할 수 있다. 이 직관이  통계적으로 얼마나 믿을만한지 분석해보려고 한다. 
@@ -91,6 +92,7 @@ mtext('고장건수',side=4,col='#dd6633', line = -1.2,cex=1.2)
 title("자전거 사용량과 고장건수", cex.main=2)
 ```
 ![](\README_img\3.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/3.png)
 
 따릉이 자전거 사용량(일일 대여건수)와 고장신고 건수는 명확히 일치하는 계절성을 보인다.  
 고장 건수와 대여건수의 축을 교차해보니 '고장건수'와 '대여건수' 사이에 선형적인 관계가 있을 것 같은 느낌이 든다.   
@@ -117,7 +119,7 @@ legend('top', legend=paste0(1:12,'월'), pch=20, text.col='white',cex=1,
        col=rainbow(12), bg=alpha("white",0.2), horiz=TRUE,)
 ```
 ![](\README_img\4.png)
-
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/4.png)
 3월(노란색) 데이터는 기울기가 가파르고 6월(초록색) 데이터는 기울기가 원만하다.  
 한 화면에 데이터 전부 넣어보니 그래프의 개형이 난잡하고 속이 불편해진다.  
 깔끔하게 분기별로 그래프를 다시 그려본다.  
@@ -132,7 +134,7 @@ for (i in 1:4){
   axis(side=1,col='#00cc00',col.axis='#00cc00')}
 ```
 ![](\README_img\5.png)
-
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/5.png)
 다행히 뭔가 있어보이는 그림이 그려졌다. 안심하고 과제를 계속 진행해도 될 것 같은 느낌이 든다.
 분기별로 데이터를 나눠보니 2015~2020 5년간의 데이터가 월별로 각자 다른 선형 그래프를 만든다.
 그림이 너무 잘 뽑혀서 2015.9.18부터 2020.6.30까지 날짜별로 점이 하나씩 추가되는 애니메이션을 만들어도 볼만할 것 같다는 생각이 든다.
@@ -161,7 +163,7 @@ data.frame(season = c('1~3월','4~6월','7~9월','10~12월','전체기간'),
            Std.error  = c(a[3],b[3],c[3],d[3],e[3]))
 ```
 ![](\README_img\6.png)
-
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/6.png)
 계절별로 선형 계수(lm.coff)가 다르다는 것을 분산 분석으로 보이려고 한다.  
 위에서 얻은 회귀식을 변형하여 각각의 데이터가 기울기(lm.coff)에 기여하는 영향을 계산한다. 
 
@@ -178,6 +180,7 @@ mtext('anova 분석 결과 : F= 2.266, P=0.00979',side=1,cex=1.5,line=0.5)
 # summary(with(m1,aov((broken+52)/rental~month)))
 ```
 ![](\README_img\7.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/7.png)
 
 ```r
 summary(with(m1,aov((broken+52)/rental~month))) # F = 2.266 , P = 0.00979 **
@@ -247,6 +250,7 @@ with(m2, boxplot(broken ~b_type,col=rainbow(4),ylim=c(0,20),xlab = "",ylab = "")
 title("따릉이 모델에 따른 고장건수",cex.main=2)
 ```
 ![](\README_img\8.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/8.png)
 
 하지만 분석 결과는 매우 높은 유의 수준에서 구룹별 평균의 차이가 있다는 것을 알려준다. 
 따릉이 모델에 따른 (고장,대여)건수의 F값은 각각(677.4,7024), p값은 (2e-16,2e-16)의 값을 갖는다.
@@ -289,6 +293,7 @@ legend('top', legend=b_type, pch=20, text.col='black',cex=1.2,
         col=rainbow(4), bg=alpha("white",0.2), horiz=TRUE,box.lty=0)
 ```
 ![](\README_img\9.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/9.png)
 
 1행의 데이터의 색갈은 고장 건수를 기준으로 한다. 각 점의 색갈은 빨주노초파란보 순서로 1,2,3...13회(이상) 고장난 자전거를 의미한다. 
 
@@ -309,6 +314,8 @@ legend('bottomright', legend=b_type, pch=20, text.col='black',cex=1.5,
          col=rainbow(4), bg=alpha("white",0.2), horiz=TRUE,box.lty=0)
 ```
 ![](\README_img\10.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/10.png)
+
 2행과 3행의 경우, 1행에서 데이터의 분포가 제대로 포이지 않아 log-scale로 다시 그렸다. 2행과 3행에 있는 그림의 변환식은 다음과 같다. 
 
 - x 축 : 자전거별 총 이동시간
@@ -335,6 +342,7 @@ with(m2, boxplot(time ~b_type,col=rainbow(4)))
 mtext("따릉이 모델별 평균 사용시간",side=3,cex=1.5,line=0.3)
 ```
 ![](\README_img\11.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/11.png)
 ```r
 # 고장 횟수에 따른 
 with(m2,summary(aov(time ~factor))) # 사용시간 : F = 918.9 , P <= 2e-16 ***
@@ -363,6 +371,7 @@ with(m2, boxplot(time/rental ~b_type,col=rainbow(4),ylim=c(20,40)))
 mtext("따릉이 모델별 대여 건당 평균 사용시간",side=3,cex=1.5,line=0.3)
 ```
 ![](\README_img\12.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/12.png)
 QR 뉴따릉이의 GPS센서에 전반적으로 문제가 있는 것 같다.  
 1행 2열의 표를 보면 다수의 뉴따릉이의 이동거리가 0으로 잡혀있다.  
 뉴따릉이 데이터 이상치의 영향으로 1행 1열 "1,2,3 번 고장' 테이터(뉴따릉이의 지분이 큼)의 이동거리 평균과 분산이 낮게 측정된다. 뉴따릉이 데이터의 시간은 웹서버를 통해 관리되고 있어 2행 2열에서 이상치는 발생하지 않는다. 
