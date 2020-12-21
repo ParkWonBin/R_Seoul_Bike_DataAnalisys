@@ -383,10 +383,10 @@ title("자전거 사용량과 고장 건수", cex.main=2)
 아래 그림을 살펴보면, 고장건수와 대여 건수 사이의 선형계수가 계절에 따라 움직이는 것을 볼 수 있다.  
 3월의 경우 대여건수에 비해 고장 건수가 높고, 6월~9월 사이 기간에는 대여건수 대비 고장건수가 적다.  
 
-```{r}
+```{r fig.width = 10, fig.height = 5}
 {par(bg='black')
 with(m1,
-     plot(rental,broken,pch = 20,cex=1.5,,xlab="",ylab="",
+     plot(rental,broken,pch = 20,cex=1.5,,xlab="",ylab="",ylim=c(0,950),
      col=rainbow(12,alpha = 0.7)[month(date)]
      )
 )
@@ -394,19 +394,22 @@ axis(side=1,col='#00cc00',col.axis='#00cc00')
 axis(side=2,col='#dd6633',col.axis="#dd6633")
 mtext('대여건수',side=1,col='#00cc00', line = 2.5,cex=2)
 mtext('고장건수',side=2,col='#dd6633', line = 2.5,cex=2)
-legend('bottomright', legend=paste0(1:12,'월'), pch=20, text.col='white',cex=0.9,
-       col=rainbow(12), bg="black")
+legend('top', legend=paste0(1:12,'월'), pch=20, text.col='white',cex=1,
+       col=rainbow(12), bg=alpha("white",0.2), horiz=TRUE,)
 }
 ```
-```{r}
-{par(mfcol=c(2,2))
-par(bg='black')
+```{r fig.width = 10, fig.height = 5}
+{ # 4분할 이미지
+par(mfcol=c(2,2),bg='black',mar=c(2, 1, 2, 1),oma=c(0.5, 1.5, 0.5,0))
 for (i in 1:4){
-with(m1,
-     plot(rental,broken,pch = 20,cex=1.5,,xlab="",ylab="",
-          col= ifelse(3*i-1)<=month(date) & month(date)<=3*i,rainbow(12)[month(date)],NA),))
-axis(side=2,col='#dd6633',col.axis="#dd6633")
-axis(side=1,col='#00cc00',col.axis='#00cc00')}
+  with(m1,
+       plot(rental,broken,pch = 20,cex=1.5,,xlab="",ylab="",
+            col= ifelse((3*i-1)<=month(date) & month(date)<=3*i,rainbow(12)[month],NA)
+            )
+       )
+  axis(side=2,col='#dd6633',col.axis="#dd6633")
+  axis(side=1,col='#00cc00',col.axis='#00cc00')
+  }
 }
 ```
 1,2,3,4 분기에 대해서 각각 따로 선형근사를 한 결과는 다음과 같다.   
@@ -414,16 +417,38 @@ lm.coff는 사용량 증가에 따른 고장건수의 비율을 나타낸다.
 
 ### 고장건수 = lm.coff*대여건수 + Intercept + error
 ```{r}
+# library(lubridate)
 {a=summary(with(m1[month(m1$date) %in% c(1,2,3),],lm(broken~rental)))
 b=summary(with(m1[month(m1$date) %in% c(4,5,6),],lm(broken~rental)))
 c=summary(with(m1[month(m1$date) %in% c(7,8,9),],lm(broken~rental)))
 d=summary(with(m1[month(m1$date) %in% c(10,11,12),],lm(broken~rental)))
-data.frame(season = c('1~3월','4~6월','7~9월','10~12월'),
-           lm.coff = c(a$coefficients[2],b$coefficients[2],c$coefficients[2],d$coefficients[2]),
-           p.lmcoff = c(a$coefficients[8],b$coefficients[8],c$coefficients[8],d$coefficients[8]),
-           Intercept = c(a$coefficients[1],b$coefficients[1],c$coefficients[1],d$coefficients[1]),
-           p.intercept = c(a$coefficients[7],b$coefficients[7],c$coefficients[7],d$coefficients[7])
-                   )
+e=summary(with(m1,lm(broken~rental)))
+data.frame(season = c('1~3월','4~6월','7~9월','10~12월','전체기간'),
+           lm.coff = c(a$coefficients[2],b$coefficients[2],c$coefficients[2],d$coefficients[2],e$coefficients[2]),
+           Intercept = c(a$coefficients[1],b$coefficients[1],c$coefficients[1],d$coefficients[1],e$coefficients[1]),
+           # t.lmcoff = c(a$coefficients[6],b$coefficients[6],c$coefficients[6],d$coefficients[6],e$coefficients[6]),
+           p.lmcoff = c(a$coefficients[8],b$coefficients[8],c$coefficients[8],d$coefficients[8],e$coefficients[8]),
+           p.intercept = c(a$coefficients[7],b$coefficients[7],c$coefficients[7],d$coefficients[7],e$coefficients[7]),
+           Std.error = c(a$coefficients[3],b$coefficients[3],c$coefficients[3],d$coefficients[3],e$coefficients[3]))
+}
+```
+
+### 2.3.2. 계절성에 의한 회귀식 변화
+위의 그래프오 표를 통해서 계절별로 회귀식의 계수를 다르게 사용해야 할 것같은 짐감을 받았다.  
+이를 확인해보고자, 데이터가 가장 많은 7월~9월의 회귀을 기준으로, y절편(약-52)만큼 평행이동 후 데이터의 기울기에 대해 분산분석을 해봤다.  
+결과는 99% 유의수준에서 계수 계절(월별 데이터)의 영향을 받는다는 것이다. 
+
+```{r fig.width = 12, fig.height = 6}
+{
+par(mfcol=c(1,1),xaxt = "n",mar=c(2, 1, 2, 1),oma=c(0.5, 1.5, 0.5, 0.5))
+with(m1, boxplot((broken+52)/rental ~month,col=rainbow(12),ylim=c(0.001,0.028)))
+legend('bottom', legend=paste0(1:12,'월'), pch=20, text.col='black',
+       cex=1.4, horiz=TRUE,col=rainbow(12), bg=alpha('white',0.2), box.lty=0)
+title('계절성에 의한 기울기 계수 변화',cex.main=2)
+mtext('대여건수 1개당 (고장건수+52)의 값',side=3,line=-1.5,cex=1.5)
+mtext('anova 분석 결과 : F= 2.266, P=0.00979',side=1,cex=1.5,line=0.5)
+# par(mfcol=c(1,1),xaxt = "t")
+# summary(with(m1,aov((broken+52)/rental~month)))
 }
 ```
 

@@ -1,6 +1,9 @@
+library(dplyr)
+library(lubridate)
+
 # 환경 청소
-rm(list=ls())# 환경 청소 : list 설정
-cat("\014")  # 콘솔 청소 : Ctrl + L
+# rm(list=ls())# 환경 청소 : list 설정
+# cat("\014")  # 콘솔 청소 : Ctrl + L
 
 # getwd() 
 # list.files(path="../", pattern = '.') 
@@ -8,19 +11,19 @@ ID = read.csv("../공공자전거 대여소 정보(20.07.13 기준).csv")
 Bike = read.csv('../Bike-Use-final.csv')
 Broken = read.csv('[csv]_Bike-Broken.csv',fileEncoding = 'utf-8')
 
-### 데이터 초기 설정
-head(ID)
-head(Bike)
-head(Broken)
-
 # 날짜 데이터 기준값 맞추기
 Broken$date = as.Date(Broken$date, origin = "2015-09-18") 
 Bike$date = as.Date(Bike$date, origin = "2015-09-18") 
 
 # 범주 데이터 범주로 설정
 Broken$type = as.factor(Broken$type)
-Broken$type
 
+
+### 데이터 초기 설정
+head(ID)
+head(Bike)
+head(Broken)
+Broken$type
 ###########
 # 고장 데이터 보기
 # 값으로 색갈 : https://stackoverflow.com/questions/17375668/scatterplot-colour-based-on-y-value
@@ -142,7 +145,6 @@ s = Brok_vbike %>% count(n)
 # 이 50%의 자전거는 전체 신고건수의 22%만 담당한다. 
 sum(s[s$n<=4,2]) / sum(s$nn) 
 sum(Brok_vbike[Brok_vbike$n<=4,2]) / sum(Brok_vbike$n) 
-
 
 
 # 반대로 15회 이상 신고접수가 된 자전거는 총 953개로, 2.8%의 양이지만
