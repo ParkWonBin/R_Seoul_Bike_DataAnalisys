@@ -1,6 +1,9 @@
 library(dplyr) # %>% 함수 사용
 library(lubridate) # month 함수 사용
 library(ggplot2) # alpha 함수 사용
+
+
+
 # 환경 청소
 # rm(list=ls())# 환경 청소 : list 설정
 # cat("\014")  # 콘솔 청소 : Ctrl + L
