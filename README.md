@@ -64,7 +64,7 @@ data.frame(t(summary(Broken$type)))
 ```
 ![](\README_img\1.png)
 ![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/1.png)
-
+<img width="700" src="https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/1.png">
 
 ```r
 plot(Broken$type)
