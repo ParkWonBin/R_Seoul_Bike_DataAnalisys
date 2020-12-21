@@ -59,22 +59,15 @@ for (i in 1:4){
 }
 
 #####################################################
-a=summary(with(m1[m1$month %in% c(1,2,3),],lm(broken~rental)))
-b=summary(with(m1[m1$month %in% c(4,5,6),],lm(broken~rental)))
-c=summary(with(m1[m1$month %in% c(7,8,9),],lm(broken~rental)))
-d=summary(with(m1[m1$month %in% c(10,11,12),],lm(broken~rental)))
-e=summary(with(m1,lm(broken~rental)))
-
+a=summary(with(m1[m1$month %in% c(1,2,3),],lm(broken~rental)))$coefficients
+b=summary(with(m1[m1$month %in% c(4,5,6),],lm(broken~rental)))$coefficients
+c=summary(with(m1[m1$month %in% c(7,8,9),],lm(broken~rental)))$coefficients
+d=summary(with(m1[m1$month %in% c(10,11,12),],lm(broken~rental)))$coefficients
+e=summary(with(m1,lm(broken~rental)))$coefficients
 
 data.frame(season = c('1~3월','4~6월','7~9월','10~12월','전체기간'),
-           lm.coff = c(a$coefficients[2],b$coefficients[2],c$coefficients[2],d$coefficients[2],e$coefficients[2]),
-           Intercept = c(a$coefficients[1],b$coefficients[1],c$coefficients[1],d$coefficients[1],e$coefficients[1]),
-           p.lmcoff = c(a$coefficients[8],b$coefficients[8],c$coefficients[8],d$coefficients[8],e$coefficients[8]),
-           p.intercept = c(a$coefficients[7],b$coefficients[7],c$coefficients[7],d$coefficients[7],e$coefficients[7]),
-           Std.error = c(a$coefficients[3],b$coefficients[3],c$coefficients[3],d$coefficients[3],e$coefficients[3]))
-
-
-m1
-e$fstatistic
-e$coefficients
-anova(a,b)
+           lm.coff    = c(a[2],b[2],c[2],d[2],e[2]),
+           Intercept  = c(a[1],b[1],c[1],d[1],e[1]),
+           p.lmcoff   = c(a[8],b[8],c[8],d[8],e[8]),
+           p.intercept= c(a[7],b[7],c[7],d[7],e[7]),
+           Std.error  = c(a[3],b[3],c[3],d[3],e[3]))
