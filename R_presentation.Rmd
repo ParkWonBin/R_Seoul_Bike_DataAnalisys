@@ -92,6 +92,15 @@ title("자전거 사용량과 고장 건수", cex.main=2)
 1. 고장건수와 대여 건수 사이의 선형회귀하면 설명력은 어느 정도가 될까?
 2. 위에서 구한 회귀식도 계절성을 갖고 있을까?
 
+```{r fig.width = 10, fig.height = 7}
+{
+par(mfcol=c(2,1),xaxt = "t", mar=c(2, 1, 2, 1),oma=c(0.5, 1.5, 0.5, 0.5))
+boxplot(Bike_vc$n ~ Bike_vc$month , col=rainbow(12))
+title('월별 총 대여수',cex.main=2)
+boxplot(Brok_vc$n ~ Brok_vc$month , col=rainbow(12),ylim=c(0,500))
+title('월별 총 고장수',cex.main=2)
+}
+```
 
 
 ### 2.3. 선형성 시각화
