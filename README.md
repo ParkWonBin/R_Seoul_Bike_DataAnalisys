@@ -58,8 +58,8 @@ m1$month = as.factor(month(m1$date))
 ```r
 data.frame(t(sort(summary(Broken$type),decreasing = TRUE )))
 ```
-![](\README_img\1.png)
-![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/1.png)
+![](\README_img\1_.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/1_.png)
 
 
 ```r
