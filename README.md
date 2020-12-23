@@ -58,8 +58,8 @@ m1$month = as.factor(month(m1$date))
 ```r
 data.frame(t(sort(summary(Broken$type),decreasing = TRUE )))
 ```
-![](\README_img\2.png)
-![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/2.png)
+![](\README_img\_2.png)
+![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/_2.png)
 
 ### 2.2. 고장나기 좋은 계절
 자전거 사용은 계절성을 나타낸다. 자전거 사용의 계절성과 자전거 고장의 계절성에 대해서 시각화 하려고 한다. 직관적으로 사람들이 자전거를 많이 사용하는 때 고장 신고도 많이 발생한다는 것을 생각할 수 있다. 이 직관이  통계적으로 얼마나 믿을만한지 분석해보려고 한다. 
