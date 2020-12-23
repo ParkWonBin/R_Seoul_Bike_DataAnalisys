@@ -56,7 +56,7 @@ m1$month = as.factor(month(m1$date))
 가장 고장이 많은 부품은 **1.단말기, 2.체인 3.기타 4.타이어** 순이다. 2020년 3월 1일 이후에 도입한 뉴 따릉이(QR코드형)은 자전거에서 단말기를 제거되었다. 앞으로는 단말기로 인한 잔고장은 ~~물리적으로~~ 사라질 예정이다.  
 
 ```r
-data.frame(t(summary(Broken$type)))
+data.frame(t(sort(summary(Broken$type),decreasing = TRUE )))
 ```
 ![](\README_img\1.png)
 ![](https://github.com/ParkWonBin/seoul_bike_data/blob/main/README_img/1.png)
